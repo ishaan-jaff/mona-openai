@@ -72,13 +72,13 @@ MONA_CREDS = {
     "key": MONA_API_KEY,
     "secret": MONA_SECRET,
 }
-CONTEXT_CLASS_NAME = "SOME_MONITORING_CONTEXT_NAME"
+MONITORING_CONTEXT_NAME = "SOME_MONITORING_CONTEXT_NAME"
 
 
 monitored_completion = monitor(
     openai.Completion,
     MONA_CREDS,
-    CONTEXT_CLASS_NAME,
+    MONITORING_CONTEXT_NAME,
 )
 
 response = monitored_completion.create(
@@ -212,13 +212,13 @@ MONA_CREDS = {
     "key": MONA_API_KEY,
     "secret": MONA_SECRET,
 }
-CONTEXT_CLASS_NAME = "SOME_MONITORING_CONTEXT_NAME"
+MONITORING_CONTEXT_NAME = "SOME_MONITORING_CONTEXT_NAME"
 
 # Get Mona logger
 mona_logger = get_rest_monitor(
     "Completion",
     MONA_CREDS,
-    CONTEXT_CLASS_NAME,
+    MONITORING_CONTEXT_NAME,
 )
 
 # Set up the API endpoint URL and authentication headers
@@ -282,7 +282,7 @@ from langchain.llms import OpenAI
 llm = monitor_langchain_llm(
     OpenAI(OPEN_AI_KEY),
     MONA_CREDS,
-    CONTEXT_CLASS_NAME)
+    MONITORING_CONTEXT_NAME)
 ```
 
 See full example in completion_langchain.py in the examples folder.

@@ -14,12 +14,12 @@ MONA_CREDS = {
 }
 
 # This is the name of the monitoring class on Mona
-CONTEXT_CLASS_NAME = "MONITORED_CHAT_COMPLETION_USE_CASE_NAME"
+MONITORING_CONTEXT_NAME = "MONITORED_CHAT_COMPLETION_USE_CASE_NAME"
 
 monitored_chat_completion = monitor(
     openai.ChatCompletion,
     MONA_CREDS,
-    CONTEXT_CLASS_NAME,
+    MONITORING_CONTEXT_NAME,
 )
 
 

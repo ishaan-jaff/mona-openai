@@ -14,12 +14,12 @@ MONA_CREDS = {
 }
 
 # This is the name of the monitoring class on Mona
-CONTEXT_CLASS_NAME = "MONITORED_COMPLETION_USE_CASE_NAME"
+MONITORING_CONTEXT_NAME = "MONITORED_COMPLETION_USE_CASE_NAME"
 
 monitored_completion = monitor(
     openai.Completion,
     MONA_CREDS,
-    CONTEXT_CLASS_NAME,
+    MONITORING_CONTEXT_NAME,
 )
 
 response = asyncio.run(

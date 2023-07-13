@@ -14,7 +14,7 @@ MONA_CREDS = {
 }
 
 # This is the name of the monitoring class on Mona
-CONTEXT_CLASS_NAME = "MONITORED_COMPLETION_USE_CASE_NAME"
+MONITORING_CONTEXT_NAME = "MONITORED_COMPLETION_USE_CASE_NAME"
 
 
 # Direct REST usage, without OpenAI client
@@ -23,7 +23,7 @@ CONTEXT_CLASS_NAME = "MONITORED_COMPLETION_USE_CASE_NAME"
 mona_logger = get_rest_monitor(
     "Completion",
     MONA_CREDS,
-    CONTEXT_CLASS_NAME,
+    MONITORING_CONTEXT_NAME,
 )
 
 # Set up the API endpoint URL and authentication headers

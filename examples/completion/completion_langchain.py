@@ -15,13 +15,13 @@ MONA_CREDS = {
 }
 
 # This is the name of the monitoring class on Mona.
-CONTEXT_CLASS_NAME = "MONITORED_LANGCHAIN_LLM"
+MONITORING_CONTEXT_NAME = "MONITORED_LANGCHAIN_LLM"
 
 # Wrap the LLM object with Mona monitoring.
 llm = monitor_langchain_llm(
     OpenAI(openai_api_key=environ.get("OPEN_AI_KEY")),
     MONA_CREDS,
-    CONTEXT_CLASS_NAME,
+    MONITORING_CONTEXT_NAME,
 )
 
 # Now you can use the llm directly along with additional Mona data.
