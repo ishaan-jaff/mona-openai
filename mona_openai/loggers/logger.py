@@ -1,4 +1,6 @@
 import abc
+from typing import Optional
+from collections.abc import Mapping
 
 
 class Logger(metaclass=abc.ABCMeta):
@@ -7,7 +9,7 @@ class Logger(metaclass=abc.ABCMeta):
     analysis data.
     """
 
-    def start_monitoring(self, openai_class_name):
+    def start_monitoring(self, openai_class_name: str):
         """
         This function will be called once this logger is used for wrapping
         an OpenAI class.
@@ -17,7 +19,7 @@ class Logger(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def log(self, message: dict, context_id=None, export_timestamp=None):
+    def log(self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None):
         """
         Every child class must implement this basic function which gets a
         dictionary to be logged.
@@ -34,7 +36,7 @@ class Logger(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def alog(
-        self, message: dict, context_id=None, export_timestamp=None
+        self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None
     ):
         """
         Child classes should implement this async version of the "log"

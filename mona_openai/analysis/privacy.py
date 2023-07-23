@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable, Callable
 
 """
 Functionality for extracting privacy information from GAI responses
@@ -21,7 +21,7 @@ EMAIL_RE_PATTERN = (
 )
 
 
-def _extract_phone_numbers(text):
+def _extract_phone_numbers(text: str) -> set[str]:
     """
     Extract phone numbers from a prompt string and return as a set.
     """
@@ -37,7 +37,7 @@ def _extract_phone_numbers(text):
     return phone_numbers
 
 
-def _extract_all_emails(text):
+def _extract_all_emails(text: str) -> set[str]:
     """
     returns all email addresses found in the given prompt.
     """
@@ -50,34 +50,34 @@ class PrivacyAnalyzer:
     privacy-related metrics from that text.
     """
 
-    def __init__(self, text) -> None:
+    def __init__(self, text: str) -> None:
         self._text = text
         self._phone_numbers = _extract_phone_numbers(text)
         self._emails = _extract_all_emails(text)
 
-    def get_phone_numbers_count(self):
+    def get_phone_numbers_count(self) -> int:
         """
         Returns the number of phone numbers in the initially given text.
         """
         return len(self._phone_numbers)
 
-    def get_emails_count(self):
+    def get_emails_count(self) -> int:
         """
         Returns the number of email addresses in the initially given text.
         """
         return len(self._emails)
 
     @classmethod
-    def _get_phone_numbers_from_instance(cls, instance):
+    def _get_phone_numbers_from_instance(cls, instance) -> set[str]:
         return instance._phone_numbers
 
     @classmethod
-    def _get_emails_from_instance(cls, instance):
+    def _get_emails_from_instance(cls, instance) -> set[str]:
         return instance._emails
 
     def _get_previously_unseen_x_count(
-        self, others: Iterable["PrivacyAnalyzer"], extraction_function
-    ):
+        self, others: Iterable["PrivacyAnalyzer"], extraction_function: Callable
+    ) -> int:
         return len(
             extraction_function(self)
             - set().union(
@@ -87,7 +87,7 @@ class PrivacyAnalyzer:
 
     def get_previously_unseen_phone_numbers_count(
         self, others: Iterable["PrivacyAnalyzer"]
-    ):
+    ) -> int:
         """
         Returns the number of phone numbers in the initially given text, that
         don't also appear in any of the given other analyzers.
@@ -98,7 +98,7 @@ class PrivacyAnalyzer:
 
     def get_previously_unseen_emails_count(
         self, others: Iterable["PrivacyAnalyzer"]
-    ):
+    ) -> int:
         """
         Returns the number of email addresses in the initially given text,
         that don't also appear in any of the given other analyzers.
@@ -108,7 +108,7 @@ class PrivacyAnalyzer:
         )
 
 
-def get_privacy_analyzers(texts):
+def get_privacy_analyzers(texts: Iterable[str]) -> tuple[PrivacyAnalyzer, ...]:
     """
     Returns a tuple of PrivacyAnalyzer objects, one for each text in the given
     iterable.

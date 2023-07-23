@@ -3,9 +3,9 @@ A module with utility (usually higher order) functions for enriching
 and extending other functions' functionalities.
 """
 from random import random
+from collections.abc import Callable
 
-
-def add_conditional_sampling(inner_func, sampling_ratio):
+def add_conditional_sampling(inner_func: Callable, sampling_ratio: float) -> Callable:
     """
     A higher order function that returns a "sampled" version of the
     given inner function only if needed. This allows for adding

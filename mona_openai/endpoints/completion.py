@@ -4,35 +4,36 @@ The Mona wrapping code for OpenAI's Completion API.
 from copy import deepcopy
 from functools import wraps
 
-from ..analysis.privacy import get_privacy_analyzers
+from ..analysis.privacy import get_privacy_analyzers, PrivacyAnalyzer
 from ..analysis.profanity import get_has_profanity, get_profanity_prob
-from ..analysis.textual import get_textual_analyzers
+from ..analysis.textual import get_textual_analyzers, TextualAnalyzer
 from ..util.oop_util import create_combined_object
 from .endpoint_wrapping import OpenAIEndpointWrappingLogic
+from collections.abc import Callable, Mapping, Iterable
 
 COMPLETION_CLASS_NAME = "Completion"
 
 
-def _get_prompts(request):
+def _get_prompts(request: Mapping) -> Iterable[str]:
     prompts = request.get("prompt", ())
     return (prompts,) if isinstance(prompts, str) else prompts
 
 
-def _get_choices_texts(response):
+def _get_choices_texts(response: Mapping) -> Iterable[str]:
     return tuple((choice["text"] for choice in response["choices"]))
 
 
-def _get_texts(func):
-    def wrapper(self, input, response):
+def _get_texts(func: Callable) -> Callable:
+    def wrapper(self, input: Mapping, response: Mapping):
         return func(self, _get_prompts(input), _get_choices_texts(response))
 
     return wrapper
 
 
-def _get_analyzers(analyzers_getter):
-    def decorator(func):
+def _get_analyzers(analyzers_getter: Callable) -> Callable:
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(self, prompts, answers):
+        def wrapper(self, prompts: Iterable[str], answers: Iterable[str]):
             return func(
                 self, analyzers_getter(prompts), analyzers_getter(answers)
             )
@@ -43,10 +44,10 @@ def _get_analyzers(analyzers_getter):
 
 
 class CompletionWrapping(OpenAIEndpointWrappingLogic):
-    def _get_endpoint_name(self):
+    def _get_endpoint_name(self) -> str:
         return COMPLETION_CLASS_NAME
 
-    def get_clean_message(self, message):
+    def get_clean_message(self, message: Mapping) -> Mapping:
         """
         Returns a copy of the given message with relevant data removed, for
         example the actual texts, to avoid sending such information, that
@@ -67,8 +68,8 @@ class CompletionWrapping(OpenAIEndpointWrappingLogic):
     @_get_texts
     @_get_analyzers(get_privacy_analyzers)
     def _get_full_privacy_analysis(
-        self, prompts_privacy_analyzers, answers_privacy_analyzers
-    ):
+        self, prompts_privacy_analyzers: Iterable[PrivacyAnalyzer], answers_privacy_analyzers: Iterable[PrivacyAnalyzer]
+    ) -> dict:
         combined_prompts = create_combined_object(prompts_privacy_analyzers)
         combined_answers = create_combined_object(answers_privacy_analyzers)
         return {
@@ -91,8 +92,8 @@ class CompletionWrapping(OpenAIEndpointWrappingLogic):
     @_get_texts
     @_get_analyzers(get_textual_analyzers)
     def _get_full_textual_analysis(
-        self, prompts_textual_analyzers, answers_textual_analyzers
-    ):
+        self, prompts_textual_analyzers: Iterable[TextualAnalyzer], answers_textual_analyzers: Iterable[TextualAnalyzer]
+    ) -> dict:
         combined_prompts = create_combined_object(prompts_textual_analyzers)
         combined_answers = create_combined_object(answers_textual_analyzers)
         return {
@@ -129,7 +130,7 @@ class CompletionWrapping(OpenAIEndpointWrappingLogic):
         }
 
     @_get_texts
-    def _get_full_profainty_analysis(self, prompts, answers):
+    def _get_full_profainty_analysis(self, prompts: Iterable[str], answers: Iterable[str]) -> dict:
         return {
             "prompt_profanity_prob": get_profanity_prob(prompts),
             "prompt_has_profanity": get_has_profanity(prompts),
@@ -137,14 +138,14 @@ class CompletionWrapping(OpenAIEndpointWrappingLogic):
             "answer_has_profanity": get_has_profanity(answers),
         }
 
-    def get_stream_delta_text_from_choice(self, choice):
+    def get_stream_delta_text_from_choice(self, choice: Mapping) -> str:
         return choice["text"]
 
-    def get_final_choice(self, text):
+    def get_final_choice(self, text: str) -> dict:
         return {"text": text}
 
-    def get_all_prompt_texts(self, request):
+    def get_all_prompt_texts(self, request: Mapping) -> Iterable[str]:
         return _get_prompts(request)
 
-    def get_all_response_texts(self, response):
+    def get_all_response_texts(self, response: Mapping) -> Iterable[str]:
         return _get_choices_texts(response)

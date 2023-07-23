@@ -8,7 +8,7 @@ caused by hallucinations or bugs.
 NOTE: There are many more analyses that can be added here.
 """
 
-from typing import Iterable
+from collections.abc import Iterable
 
 PREPOSITIONS = set(
     (
@@ -81,32 +81,32 @@ class TextualAnalyzer:
     on that text such as length, word count, etc...
     """
 
-    def __init__(self, text):
+    def __init__(self, text: str) -> None:
         self._text = text
         self._splitted_text = text.split()
         self._prepositions = tuple(
             x for x in self._splitted_text if x in PREPOSITIONS
         )
 
-    def get_length(self):
+    def get_length(self) -> int:
         """
         Returns the length of the text.
         """
         return len(self._text)
 
-    def get_word_count(self):
+    def get_word_count(self) -> int:
         """
         Returns the number of the words in the text.
         """
         return len(self._splitted_text)
 
-    def get_preposition_count(self):
+    def get_preposition_count(self) -> int:
         """
         Returns the number of prepositions in the text.
         """
         return len(self._prepositions)
 
-    def get_preposition_ratio(self):
+    def get_preposition_ratio(self) -> float:
         """
         Returns the ratio of prepositions in the text.
         """
@@ -115,7 +115,7 @@ class TextualAnalyzer:
 
     def get_words_not_in_others_count(
         self, others: Iterable["TextualAnalyzer"]
-    ):
+    ) -> int:
         """
         Returns the number of the words in the text that do not appear in the
         given other texts.
@@ -132,7 +132,7 @@ class TextualAnalyzer:
         )
 
 
-def get_textual_analyzers(texts):
+def get_textual_analyzers(texts: Iterable[str]) -> tuple[TextualAnalyzer, ...]:
     """
     Returns a tuple of TextualAnalyzers for all the given texts.
     """

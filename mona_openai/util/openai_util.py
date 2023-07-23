@@ -4,7 +4,7 @@ parameter names).
 """
 
 
-def get_model_param(request):
+def get_model_param(request: dict) -> str:
     """
     Returns the "model" param in the request, the "engine" param if no
     "model" param is used, and None if neither exists (which isn't expected

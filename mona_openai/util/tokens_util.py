@@ -2,17 +2,18 @@
 A utility module for everything realted to encoding tokens.
 """
 import tiktoken
+from collections.abc import Iterable
 
 
-def _get_number_of_tokens(text, enc):
+def _get_number_of_tokens(text: str, enc: tiktoken.Encoding) -> int:
     return len(enc.encode(text))
 
 
-def _get_encoding(model):
+def _get_encoding(model: str) -> tiktoken.Encoding:
     return tiktoken.encoding_for_model(model)
 
 
-def get_usage(model, prompt_texts, response_texts):
+def get_usage(model: str, prompt_texts: Iterable[str], response_texts: Iterable[str]) -> dict:
     """
     Returns a usage dict containing the number of tokens in the prompt, in the
     response, and totally.

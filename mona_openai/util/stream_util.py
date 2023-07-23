@@ -4,6 +4,8 @@ A util module for everything related to supporting streams.
 import time
 from .async_util import run_in_an_event_loop
 import inspect
+from collections.abc import Callable, Iterator
+from typing import Optional
 
 
 class ResponseGatheringIterator:
@@ -22,18 +24,18 @@ class ResponseGatheringIterator:
 
     def __init__(
         self,
-        delta_choice_text_getter,
-        final_choice_getter,
-        original_iterator,
-        callback,
-    ):
+        delta_choice_text_getter: Callable,
+        final_choice_getter: Callable,
+        original_iterator: Iterator,
+        callback: Callable,
+    ) -> None:
         self._original_iterator = original_iterator
         self._delta_choice_text_getter = delta_choice_text_getter
         self._final_choice_getter = final_choice_getter
         self._callback = callback
-        self._initial_event_recieved_time = None
-        self._common_response_information = None
-        self._choices = {}
+        self._initial_event_recieved_time: Optional[float] = None
+        self._common_response_information: dict = {}
+        self._choices: dict = {}
 
     def __iter__(self):
         return self
@@ -57,7 +59,7 @@ class ResponseGatheringIterator:
             await self._a_call_callback()
             raise
 
-    def _add_response(self, event):
+    def _add_response(self, event: dict) -> dict:
         """
         The main and only exposed function of the ResponseGatherer class. Use
         this function to collect stream events.
@@ -91,22 +93,22 @@ class ResponseGatheringIterator:
             self._initial_event_recieved_time,
         )
 
-    def _handle_choice(self, choice):
+    def _handle_choice(self, choice: dict) -> None:
         index = choice["index"]
         self._choices[index] = self._choices.get(index, []) + [choice]
 
-    def _get_only_choice(self, event):
+    def _get_only_choice(self, event: dict) -> dict:
         # Stream response events have only a single choice that specifies
         # its own index.
         return event["choices"][0]
 
-    def _create_singular_response(self):
+    def _create_singular_response(self) -> dict:
         choices = [
             self._get_full_choice(choice) for choice in self._choices.values()
         ]
-        return self._common_response_information | {"choices": choices}
+        return {**self._common_response_information, "choices": choices}
 
-    def _get_full_choice(self, choice):
+    def _get_full_choice(self, choice: dict) -> dict:
         full_text = "".join(
             self._delta_choice_text_getter(choice_event)
             for choice_event in choice
