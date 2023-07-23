@@ -4,6 +4,9 @@ A module for general logic for wrapping OpenAI endpoints.
 import abc
 from ..util.validation_util import validate_openai_class
 
+from ..util.typing_util import SupportedOpenAIClassesType
+from collections.abc import Mapping, Iterable
+
 
 class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
     """
@@ -23,7 +26,7 @@ class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
             "profanity": self._get_full_profainty_analysis,
         }
 
-    def wrap_class(self, openai_class):
+    def wrap_class(self, openai_class) -> SupportedOpenAIClassesType:
         """
         Returns a monitored class wrapping the given openai class, enriching it
         with specific capabilities to be used by an inhereting monitored class.
@@ -34,27 +37,27 @@ class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
             # TODO(itai): Have a smarter way to "import" all the methods to
             #   this class instead of just copying them.
             @classmethod
-            def _get_full_analysis(cls, input, response):
+            def _get_full_analysis(cls, input: Mapping, response: Mapping) -> dict:
                 return self.get_full_analysis(input, response)
 
             @classmethod
-            def _get_clean_message(cls, message):
+            def _get_clean_message(cls, message: Mapping) -> Mapping:
                 return self.get_clean_message(message)
 
             @classmethod
-            def _get_stream_delta_text_from_choice(cls, choice):
+            def _get_stream_delta_text_from_choice(cls, choice: Mapping) -> str:
                 return self.get_stream_delta_text_from_choice(choice)
 
             @classmethod
-            def _get_final_choice(cls, text):
+            def _get_final_choice(cls, text: str) -> dict:
                 return self.get_final_choice(text)
 
             @classmethod
-            def _get_all_prompt_texts(cls, request):
+            def _get_all_prompt_texts(cls, request: Mapping) -> Iterable[str]:
                 return self.get_all_prompt_texts(request)
 
             @classmethod
-            def _get_all_response_texts(cls, response):
+            def _get_all_response_texts(cls, response: Mapping) -> Iterable[str]:
                 return self.get_all_response_texts(response)
 
         return type(
@@ -62,14 +65,14 @@ class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
         )
 
     @abc.abstractmethod
-    def _get_endpoint_name(self):
+    def _get_endpoint_name(self) -> str:
         """
         Returns the name of the OpenAI endpoint that is being wrapped.
         """
         pass
 
     @abc.abstractmethod
-    def get_clean_message(self, message):
+    def get_clean_message(self, message: Mapping) -> Mapping:
         """
         Given a mona message, returns a "clean" message in the sense that it
         will not hold any information that shouldn't be exported to Mona
@@ -77,7 +80,7 @@ class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
         """
         pass
 
-    def get_full_analysis(self, input, response):
+    def get_full_analysis(self, input: Mapping, response: Mapping) -> dict:
         """
         Returns a dict mapping each analysis type to all related analysis
         fields for the given prompt and answers according to the given
@@ -95,51 +98,51 @@ class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
         }
 
     @abc.abstractmethod
-    def _get_full_privacy_analysis(self, input, response):
+    def _get_full_privacy_analysis(self, input: Mapping, response: Mapping) -> dict:
         """
         Returns a dictionary with all calculated privacy analysis params.
         """
         pass
 
     @abc.abstractmethod
-    def _get_full_textual_analysis(self, input, response):
+    def _get_full_textual_analysis(self, input: Mapping, response: Mapping) -> dict:
         """
         Returns a dictionary with all calculated textual analysis params.
         """
         pass
 
     @abc.abstractmethod
-    def _get_full_profainty_analysis(self, input, response):
+    def _get_full_profainty_analysis(self, input: Mapping, response: Mapping) -> dict:
         """
         Returns a dictionary with all calculated profanity analysis params.
         """
         pass
 
-    @abc.abstractclassmethod
-    def get_stream_delta_text_from_choice(self, choice):
+    @abc.abstractmethod
+    def get_stream_delta_text_from_choice(self, choice: Mapping) -> str:
         """
         Given a stream response "choice", returns the text from that choice.
         """
         pass
 
-    @abc.abstractclassmethod
-    def get_final_choice(self, text):
+    @abc.abstractmethod
+    def get_final_choice(self, text: str) -> dict:
         """
         Returns a dictionary for a "choice" object as it would have been
         received from OpenAI's API that holds the given text as the content.
         """
         pass
 
-    @abc.abstractclassmethod
-    def get_all_prompt_texts(self, request):
+    @abc.abstractmethod
+    def get_all_prompt_texts(self, request: Mapping) -> Iterable[str]:
         """
         Given a request object, returns all the prompt texts from that
         request.
         """
         pass
 
-    @abc.abstractclassmethod
-    def get_all_response_texts(self, response):
+    @abc.abstractmethod
+    def get_all_response_texts(self, response: Mapping) -> Iterable[str]:
         """
         Given a response object, returns all the possible response texts.
         """

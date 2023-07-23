@@ -1,20 +1,23 @@
 from ..logger import Logger
 from mona_sdk import MonaSingleMessage
-from .mona_client import get_mona_clients
+from .mona_client import get_mona_clients, MonaCredsType
+from collections.abc import Callable
 import logging
+from typing import Optional
+from collections.abc import Mapping
 
 
 class MonaLogger(Logger):
     def __init__(
         self,
-        mona_creds,
-        context_class,
-        mona_clients_getter=get_mona_clients,
+        mona_creds: MonaCredsType,
+        context_class: str,
+        mona_clients_getter: Callable=get_mona_clients,
     ):
         self.client, self.async_client = mona_clients_getter(mona_creds)
         self.context_class = context_class
 
-    def start_monitoring(self, openai_class_name):
+    def start_monitoring(self, openai_class_name) -> dict:
         """
         Calls Mona's server to init the given context class specifically for
         the given OpenAI class name.
@@ -35,7 +38,7 @@ class MonaLogger(Logger):
             )
         return response
 
-    def log(self, message, context_id, export_timestamp):
+    def log(self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None) -> None:
         """
         Logs the given message to Mona.
         """
@@ -48,7 +51,9 @@ class MonaLogger(Logger):
             )
         )
 
-    async def alog(self, message, context_id, export_timestamp):
+    async def alog(
+        self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None
+    ) -> None:
         """
         Async logs the given message to Mona.
         """

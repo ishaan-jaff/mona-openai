@@ -1,6 +1,8 @@
 from .logger import Logger
 import atexit
 import json
+from typing import Optional
+from collections.abc import Mapping
 
 
 class FileLogger(Logger):
@@ -13,11 +15,11 @@ class FileLogger(Logger):
 
         atexit.register(self.close_file)
 
-    def close_file(self):
+    def close_file(self) -> None:
         if not self.file.closed:
             self.file.close()
 
-    def log(self, message: dict, context_id=None, export_timestamp=None):
+    def log(self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None) -> None:
         self.file.writelines(
             [
                 json.dumps(
@@ -31,7 +33,7 @@ class FileLogger(Logger):
         )
 
     async def alog(
-        self, message: dict, context_id=None, export_timestamp=None
-    ):
+        self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None
+    ) -> None:
         # TODO: Imlement actual asyncio usage.
         return self.log(message, context_id, export_timestamp)

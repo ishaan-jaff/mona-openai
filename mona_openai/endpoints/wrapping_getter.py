@@ -1,6 +1,7 @@
 from .completion import CompletionWrapping, COMPLETION_CLASS_NAME
 from .chat_completion import ChatCompletionWrapping, CHAT_COMPLETION_CLASS_NAME
 from ..exceptions import WrongOpenAIClassException
+from collections.abc import Mapping
 
 # TODO(Itai): This is essetially a nice-looking "switch" statement. We should
 #   try to use the name to find the exact monitoring-enrichment function and
@@ -11,7 +12,7 @@ ENDPOINT_NAME_TO_WRAPPING = {
 }
 
 
-def get_endpoint_wrapping(endpoint_name, specs):
+def get_endpoint_wrapping(endpoint_name: str, specs: Mapping):
     try:
         return ENDPOINT_NAME_TO_WRAPPING[endpoint_name](specs)
     except KeyError:

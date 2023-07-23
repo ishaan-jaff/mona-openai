@@ -4,7 +4,7 @@ from ..exceptions import (
 )
 
 
-def validate_openai_class(openai_class, required_name):
+def validate_openai_class(openai_class: type, required_name: str) -> None:
     """
     Validates that the given OpenAI API class' name is the given
     required name.
@@ -16,7 +16,7 @@ def validate_openai_class(openai_class, required_name):
         )
 
 
-def validate_and_get_sampling_ratio(specs):
+def validate_and_get_sampling_ratio(specs: dict) -> float:
     """
     Validates that the sampling ratio in a given specs dict is a valid
     number (between 0 and 1). Returns a default value of 1 if no

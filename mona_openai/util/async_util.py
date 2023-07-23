@@ -1,10 +1,11 @@
 import nest_asyncio
 import asyncio
-from types import MappingProxyType
+from .general_consts import EMPTY_DICT
 from inspect import iscoroutinefunction
+from collections.abc import Mapping, Coroutine, Callable
 
 
-def run_in_an_event_loop(coroutine):
+def run_in_an_event_loop(coroutine: Coroutine):
     """
     A light wrapper around asyncio.run to avoid crushing when trying to run a
     coroutine in an environment where an event loop is already in place and
@@ -23,11 +24,8 @@ def run_in_an_event_loop(coroutine):
             return asyncio.run(coroutine)
 
 
-EMPTY_DICT = MappingProxyType({})
-
-
 async def call_non_blocking_sync_or_async(
-    function, func_args=(), func_kwargs=EMPTY_DICT
+    function: Callable, func_args=(), func_kwargs: Mapping = EMPTY_DICT
 ):
     """
     A higher order function that allows calling both sync and async

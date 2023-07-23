@@ -1,11 +1,14 @@
 from mona_sdk.client import Client
 from mona_sdk.async_client import AsyncClient
+from typing import Union
 
 from ...exceptions import InvalidMonaCredsException
 
 
 MONA_API_KEY_KEY = "key"
 MONA_API_SECRET_KEY = "secret"
+
+MonaCredsType = Union[dict, list, tuple]
 
 
 def get_mona_clients(creds):

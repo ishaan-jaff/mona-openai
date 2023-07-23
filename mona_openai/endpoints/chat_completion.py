@@ -5,26 +5,27 @@ from copy import deepcopy
 from functools import wraps
 
 from ..util.oop_util import create_combined_object
-from ..analysis.privacy import get_privacy_analyzers
+from ..analysis.privacy import get_privacy_analyzers, PrivacyAnalyzer
 from ..analysis.profanity import get_profanity_prob, get_has_profanity
-from ..analysis.textual import get_textual_analyzers
+from ..analysis.textual import get_textual_analyzers, TextualAnalyzer
+from collections.abc import Callable, Iterable, Mapping
 from .endpoint_wrapping import OpenAIEndpointWrappingLogic
 
 CHAT_COMPLETION_CLASS_NAME = "ChatCompletion"
 
 
-def _get_choices_texts(response):
+def _get_choices_texts(response: Mapping) -> tuple:
     return tuple(
-        (choice["message"]["content"] for choice in response["choices"])
+        choice["message"]["content"] for choice in response["choices"]
     )
 
 
-def _get_prompt_texts(request):
+def _get_prompt_texts(request: Mapping) -> tuple:
     return tuple(message["content"] for message in request["messages"])
 
 
-def _get_texts(func):
-    def wrapper(self, input, response):
+def _get_texts(func: Callable) -> Callable:
+    def wrapper(self, input: Mapping, response: Mapping):
         return func(
             self,
             input["messages"][-1]["content"]
@@ -37,10 +38,10 @@ def _get_texts(func):
     return wrapper
 
 
-def _get_analyzers(analyzers_getter):
-    def decorator(func):
+def _get_analyzers(analyzers_getter: Callable) -> Callable:
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(self, last_user_message, messages, answers):
+        def wrapper(self, last_user_message: str, messages: Iterable[str], answers: Iterable[str]):
             return func(
                 self,
                 analyzers_getter((last_user_message,))[0]
@@ -59,7 +60,7 @@ class ChatCompletionWrapping(OpenAIEndpointWrappingLogic):
     def _get_endpoint_name(self):
         return CHAT_COMPLETION_CLASS_NAME
 
-    def get_clean_message(self, message):
+    def get_clean_message(self, message: Mapping) -> Mapping:
         """
         Returns a copy of the given message with relevant data removed, for
         example the actual texts, to avoid sending such information, that
@@ -82,10 +83,10 @@ class ChatCompletionWrapping(OpenAIEndpointWrappingLogic):
     @_get_analyzers(get_privacy_analyzers)
     def _get_full_privacy_analysis(
         self,
-        last_user_message_analyzer,
-        messages_privacy_analyzers,
-        answers_privacy_analyzers,
-    ):
+        last_user_message_analyzer: PrivacyAnalyzer,
+        messages_privacy_analyzers: Iterable[PrivacyAnalyzer],
+        answers_privacy_analyzers: Iterable[PrivacyAnalyzer],
+    ) -> dict:
         combined_messages = create_combined_object(messages_privacy_analyzers)
         combined_answers = create_combined_object(answers_privacy_analyzers)
         ret = {
@@ -123,10 +124,10 @@ class ChatCompletionWrapping(OpenAIEndpointWrappingLogic):
     @_get_analyzers(get_textual_analyzers)
     def _get_full_textual_analysis(
         self,
-        last_user_message_analyzer,
-        messages_textual_analyzers,
-        answers_textual_analyzers,
-    ):
+        last_user_message_analyzer: TextualAnalyzer,
+        messages_textual_analyzers: Iterable[TextualAnalyzer],
+        answers_textual_analyzers: Iterable[TextualAnalyzer],
+    ) -> dict:
         combined_messages = create_combined_object(messages_textual_analyzers)
         combined_answers = create_combined_object(answers_textual_analyzers)
         total_prompt_word_count = sum(combined_messages.get_word_count())
@@ -188,9 +189,9 @@ class ChatCompletionWrapping(OpenAIEndpointWrappingLogic):
 
     @_get_texts
     def _get_full_profainty_analysis(
-        self, last_user_message, messages, answers
-    ):
-        ret = {
+        self, last_user_message: str, messages: Iterable[str], answers: Iterable[str]
+    ) -> dict:
+        ret: dict = {
             "prompt_profanity_prob": get_profanity_prob(messages),
             "prompt_has_profanity": get_has_profanity(messages),
             "answer_profanity_prob": get_profanity_prob(answers),
@@ -211,14 +212,14 @@ class ChatCompletionWrapping(OpenAIEndpointWrappingLogic):
 
         return ret
 
-    def get_stream_delta_text_from_choice(self, choice):
+    def get_stream_delta_text_from_choice(self, choice: Mapping) -> str:
         return choice["delta"].get("content", "")
 
-    def get_final_choice(self, text):
+    def get_final_choice(self, text: str) -> dict:
         return {"message": {"role": "assistant", "content": text}}
 
-    def get_all_prompt_texts(self, request):
+    def get_all_prompt_texts(self, request: Mapping) -> Iterable[str]:
         return _get_prompt_texts(request)
 
-    def get_all_response_texts(self, response):
+    def get_all_response_texts(self, response: Mapping) -> Iterable[str]:
         return _get_choices_texts(response)

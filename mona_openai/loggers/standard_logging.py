@@ -1,5 +1,7 @@
 from .logger import Logger
 from logging import getLogger, INFO
+from typing import Optional
+from collections.abc import Mapping
 
 
 class StandardLogger(Logger):
@@ -16,7 +18,7 @@ class StandardLogger(Logger):
         self.underlying_logger = underlying_logger or getLogger("Mona")
         self.level = logging_level
 
-    def log(self, message: dict, context_id=None, export_timestamp=None):
+    def log(self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None) -> None:
         self.underlying_logger.log(
             self.level,
             {
@@ -27,11 +29,11 @@ class StandardLogger(Logger):
         )
 
     async def alog(
-        self, message: dict, context_id=None, export_timestamp=None
-    ):
+        self, message: Mapping, context_id: Optional[str]=None, export_timestamp: Optional[float]=None
+    ) -> None:
         return self.log(message, context_id, export_timestamp)
 
-    def start_monitoring(self, openai_class_name):
+    def start_monitoring(self, openai_class_name: str) -> None:
         self.underlying_logger.log(
             self.level, f"Started monitoring for OpenAI's {openai_class_name}"
         )
