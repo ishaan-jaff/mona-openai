@@ -65,12 +65,29 @@ _DEFAULT_INPUT = {
     "temperature": 0.6,
     "n": 1,
     "max_tokens": 5,
+    "api_key": "some_key_that_should_be_removed",
+    "organization": "some_organization_that_should_be_removed"
 }
 
+
 # By default we don't export the prompt to Mona
-_DEFAULT_EXPORTED_INPUT = {
-    x: _DEFAULT_INPUT[x] for x in _DEFAULT_INPUT if x != "prompt"
-}
+def _remove_texts_from_input(input):
+    new_input = deepcopy(input)
+    new_input.pop("prompt", None)
+
+    return new_input
+
+def _remove_irrelevant_input_keys(input):
+    new_input = deepcopy(input)
+    new_input.pop("api_key", None)
+    new_input.pop("organization", None)
+    return new_input
+
+def _get_clean_input(input):
+    return _remove_irrelevant_input_keys(_remove_texts_from_input(input))
+
+# By default we don't export the prompt to Mona
+_DEFAULT_EXPORTED_INPUT = _get_clean_input(_DEFAULT_INPUT)
 
 _DEFAULT_ANALYSIS = {
     "privacy": {
@@ -156,8 +173,7 @@ def test_multiple_prompts():
         "I want to generate some text about ",
         "I also want to generate some text about ",
     )
-    expected_input = deepcopy(new_input)
-    expected_input.pop("prompt")
+    expected_input = _get_clean_input(new_input)
 
     new_response = deepcopy(_DEFAULT_RESPONSE)
     new_response["choices"] = [
@@ -313,7 +329,7 @@ def test_export_prompt():
         _DEFAULT_CONTEXT_CLASS,
         {"export_prompt": True},
         mona_clients_getter=get_mock_mona_clients_getter(
-            (_get_mona_message(input=_DEFAULT_INPUT),), ()
+            (_get_mona_message(input=_remove_irrelevant_input_keys(_DEFAULT_INPUT)),), ()
         ),
     ).create(**_DEFAULT_INPUT)
 
@@ -443,8 +459,7 @@ def test_no_textual_or_privacy():
 def test_multiple_answers():
     new_input = deepcopy(_DEFAULT_INPUT)
     new_input["n"] = 3
-    expected_input = deepcopy(new_input)
-    expected_input.pop("prompt")
+    expected_input = _get_clean_input(new_input)
 
     new_response = deepcopy(_DEFAULT_RESPONSE)
     new_response["choices"] = [
@@ -545,8 +560,7 @@ def test_stream():
     input = deepcopy(_DEFAULT_INPUT)
     input["stream"] = True
 
-    expected_input = deepcopy(input)
-    expected_input.pop("prompt")
+    expected_input = _get_clean_input(input)
 
     for _ in monitor(
         _get_mock_openai_class((response_generator(),), ()),
@@ -592,8 +606,7 @@ def test_stream_multiple_answers():
     input["stream"] = True
     input["n"] = 2
 
-    expected_input = deepcopy(input)
-    expected_input.pop("prompt")
+    expected_input = _get_clean_input(input)
 
     expected_response = deepcopy(_DEFAULT_EXPORTED_RESPONSE)
     expected_response["choices"] += deepcopy(expected_response["choices"])
@@ -665,8 +678,7 @@ def test_stream_async():
     input = deepcopy(_DEFAULT_INPUT)
     input["stream"] = True
 
-    expected_input = deepcopy(input)
-    expected_input.pop("prompt")
+    expected_input = _get_clean_input(input)
 
     async def iterate_gen():
         async for _ in await monitor(
