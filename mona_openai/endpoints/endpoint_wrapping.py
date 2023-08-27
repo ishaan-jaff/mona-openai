@@ -2,11 +2,15 @@
 A module for general logic for wrapping OpenAI endpoints.
 """
 import abc
+from copy import deepcopy
 from ..util.validation_util import validate_openai_class
 
 from ..util.typing_util import SupportedOpenAIClassesType
 from collections.abc import Mapping, Iterable
 
+# These are keys that might exist in the OpenAI request object that we don't
+# want to send to Mona. A sort of blacklist of keys.
+INPUT_KEYS_TO_POP = ("api_key", "organization")
 
 class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
     """
@@ -72,13 +76,22 @@ class OpenAIEndpointWrappingLogic(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def _internal_get_clean_message(self, message: Mapping) -> Mapping:
+        """
+        This method will be called in child classes for specific message cleaning logic.
+        """
+        pass
+
     def get_clean_message(self, message: Mapping) -> Mapping:
         """
         Given a mona message, returns a "clean" message in the sense that it
         will not hold any information that shouldn't be exported to Mona
         (e.g., actual prompts).
         """
-        pass
+        new_message = deepcopy(message)
+        for key in INPUT_KEYS_TO_POP:
+            new_message["input"].pop(key, None)
+        return self._internal_get_clean_message(new_message)
 
     def get_full_analysis(self, input: Mapping, response: Mapping) -> dict:
         """

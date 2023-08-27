@@ -47,7 +47,7 @@ class CompletionWrapping(OpenAIEndpointWrappingLogic):
     def _get_endpoint_name(self) -> str:
         return COMPLETION_CLASS_NAME
 
-    def get_clean_message(self, message: Mapping) -> Mapping:
+    def _internal_get_clean_message(self, message: Mapping) -> Mapping:
         """
         Returns a copy of the given message with relevant data removed, for
         example the actual texts, to avoid sending such information, that
